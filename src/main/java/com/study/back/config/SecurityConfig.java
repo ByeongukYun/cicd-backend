@@ -1,23 +1,26 @@
 package com.study.back.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    @Autowired
+    private Environment env;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
@@ -52,7 +55,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration config = new CorsConfiguration();
         // 자격 증명(예: 쿠키, 인증 헤더)을 포함한 요청을 허용 -> 세션 쿠키를 받겠다
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:3000");// 프런트단 리액트 서버, 필요시 포트 변경
+
+        String release_ip = env.getProperty("app.release_ip");
+        String release_domain = env.getProperty("app.release_domain");
+        String dev_ip = env.getProperty("app.dev_ip");
+
+        config.setAllowedOrigins(Arrays.asList(
+                release_ip,
+                release_domain,
+                dev_ip
+        ));
+
+        //config.addAllowedOrigin("http://localhost:3000");// 프런트단 리액트 서버, 필요시 포트 변경
         // 모든 헤더값 통과
         config.addAllowedHeader("*");
         // 모든 메소드 방식 통과
